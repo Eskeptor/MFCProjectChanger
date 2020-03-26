@@ -106,19 +106,98 @@ namespace MFCProjectChanger
 
             try
             {
-                string[] arrStrDirs = Directory.GetDirectories(strPath);
-                string[] arrStrFiles = Directory.GetFiles(strPath, "*.*");
-
-                foreach (string strFile in arrStrFiles)
+                if (bIsChgFile)
                 {
+                    string[] arrStrFiles = Directory.GetFiles(strPath, "*.*");
+                    string strEx = string.Empty;
+                    string strData = string.Empty;
+                    string strNewData = string.Empty;
+                    bool bIsIgnoreFile = false;
+                    Encoding encoding;
+                    Util.RenameResult eRenameResult;
 
+                    foreach (string strFile in arrStrFiles)
+                    {
+                        strEx = strFile.Substring(strFile.LastIndexOf(".") + 1);
+                        foreach (string strIgnore in m_arrStrIgnoreEx)
+                        {
+                            if (strEx.Equals(strIgnore))
+                            {
+                                bIsIgnoreFile = true;
+                                break;
+                            }
+                        }
+
+                        if (bIsIgnoreFile)
+                        {
+                            bIsIgnoreFile = false;
+                        }
+                        else
+                        {
+                            encoding = Util.GetEncoding(strFile);
+                            using (StreamReader reader = new StreamReader(strFile, encoding))
+                            {
+                                strData = reader.ReadToEnd();
+                            }
+
+                            if (strData.IndexOf(strCurPrjName) != -1)
+                            {
+                                strNewData = strData.Replace(strCurPrjName, strChgPrjName);
+
+                                using (StreamWriter writer = new StreamWriter(strFile, false, encoding))
+                                {
+                                    writer.Write(strNewData);
+                                }
+                            }
+                        }
+
+                        eRenameResult = Util.FileRename(strFile, strCurPrjName, strChgPrjName);
+                        if (eRenameResult == Util.RenameResult.Failed)
+                        {
+                            SetLog(string.Format("파일명 변경 실패 - {0}", strPath));
+                        }
+                        AddProgress();
+                    }
                 }
 
+                string[] arrStrDirs = Directory.GetDirectories(strPath);
+                
                 if (arrStrDirs.Length > 0)
                 {
+                    string strBackFolder = string.Empty;
+                    bool bIsIgnoreFolder = false;
+                    Util.RenameResult eRenameResult;
+
                     foreach (string strDir in arrStrDirs)
                     {
-                        DirFileNameChange(strDir, strCurPrjName, strChgPrjName, bIsChgFile, bIsChgFolder);
+                        strBackFolder = strDir.Substring(strDir.LastIndexOf(@"\") + 1);
+                        foreach (string strIgnore in m_arrStrIgnoreFolders)
+                        {
+                            if (strBackFolder.Equals(strIgnore))
+                            {
+                                bIsIgnoreFolder = true;
+                                break;
+                            }
+                        }
+
+                        if (bIsIgnoreFolder)
+                        {
+                            bIsIgnoreFolder = false;
+                        }
+                        else
+                        {
+                            DirFileNameChange(strDir, strCurPrjName, strChgPrjName, bIsChgFile, bIsChgFolder);
+
+                            if (bIsChgFolder)
+                            {
+                                eRenameResult = Util.FileRename(strDir, strCurPrjName, strChgPrjName);
+                                if (eRenameResult == Util.RenameResult.Failed)
+                                {
+                                    SetLog(string.Format("폴더명 변경 실패 - {0}", strPath));
+                                }
+                                AddProgress();
+                            }
+                        }
                     }
                 }
             }
@@ -151,6 +230,30 @@ namespace MFCProjectChanger
 
         private void ThreadChange(string strPrjPath, string strCurPrjName, string strChgPrjName)
         {
+            // 프로그래스바의 최대값을 폴더내의 파일 및 하위폴더 개수로 설정
+            int nFileCount = GetAllFileCount(strPrjPath);
+            if (pgbarChange.InvokeRequired)
+            {
+                pgbarChange.Invoke(new MethodInvoker(delegate ()
+                {
+                    pgbarChange.Maximum = nFileCount;
+                }));
+            }
+            else
+                pgbarChange.Maximum = nFileCount;
+
+            // 파일 우선 변경
+            DirFileNameChange(strPrjPath, strCurPrjName, strChgPrjName, true, false);
+            // 디렉토리 변경
+            DirFileNameChange(strPrjPath, strCurPrjName, strChgPrjName, true, false);
+            // 최상위 디렉토리 변경
+            Util.RenameResult eRenameResult = Util.FileRename(strPrjPath, strCurPrjName, strChgPrjName);
+            if (eRenameResult == Util.RenameResult.Failed)
+            {
+                SetLog(string.Format("폴더명 변경 실패 - {0}", strPrjPath));
+            }
+
+            MessageBox.Show("작업을 완료하였습니다.");
 
             m_thrChange = null;
         }
@@ -214,6 +317,66 @@ namespace MFCProjectChanger
                 MessageBox.Show("변경 작업이 이미 진행중입니다.");
                 SetLog("작업 스레드 생성 실패");
             }
+        }
+
+
+        /// <summary>
+        /// 프로그래스바의 현재 진행상태를 설정하는 메소드
+        /// </summary>
+        /// <param name="nProg"></param>
+        private void SetProgress(int nProg)
+        {
+            if (pgbarChange.InvokeRequired)
+            {
+                pgbarChange.Invoke(new MethodInvoker(delegate ()
+                {
+                    pgbarChange.Value = nProg;
+                }));
+            }
+            else
+                pgbarChange.Value = nProg;
+        }
+
+
+        /// <summary>
+        /// 프로그래스바의 현재 진행상태를 1증가시키는 메소드
+        /// </summary>
+        private void AddProgress()
+        {
+            if (pgbarChange.InvokeRequired)
+            {
+                pgbarChange.Invoke(new MethodInvoker(delegate ()
+                {
+                    if (pgbarChange.Value < pgbarChange.Maximum)
+                        pgbarChange.Value += 1;
+                }));
+            }
+            else
+            {
+                if (pgbarChange.Value < pgbarChange.Maximum)
+                    pgbarChange.Value += 1;
+            }
+        }
+
+
+        /// <summary>
+        /// 해당 폴더내의 파일 및 폴더 개수를 반환하는 메소드
+        /// </summary>
+        /// <param name="strPath">최상위 폴더 경로</param>
+        /// <returns>파일 및 폴더 개수</returns>
+        public int GetAllFileCount(string strPath)
+        {
+            int nCount = 0;
+            try
+            {
+                if (Directory.Exists(strPath))
+                {
+                    DirectoryInfo directoryInfo = new DirectoryInfo(strPath);
+                    nCount = directoryInfo.GetFiles("*.*", SearchOption.AllDirectories).Length;
+                }
+            }
+            catch { }
+            return nCount;
         }
 
 

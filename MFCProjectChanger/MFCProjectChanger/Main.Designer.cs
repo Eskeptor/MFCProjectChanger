@@ -120,7 +120,7 @@
             this.tBoxLog.Location = new System.Drawing.Point(188, 204);
             this.tBoxLog.Multiline = true;
             this.tBoxLog.Name = "tBoxLog";
-            this.tBoxLog.ScrollBars = System.Windows.Forms.ScrollBars.Horizontal;
+            this.tBoxLog.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.tBoxLog.Size = new System.Drawing.Size(504, 236);
             this.tBoxLog.TabIndex = 9;
             // 
