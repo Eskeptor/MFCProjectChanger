@@ -15,10 +15,13 @@ namespace MFCProjectChanger
 {
     public partial class FrmMain : MetroForm
     {
+        private readonly string THEME_LIGHT = "Light";
+        private readonly string THEME_DARK = "Dark";
         private readonly string APP_IGNORE_FOLDERS = "IgnoreFolders";
         private readonly string APP_IGNORE_EXTENDS = "IgnoreExtends";
         private readonly string APP_LATEST_PROJECT_PATH = "LatestProjectPath";
         private readonly string APP_LATEST_PROJECT_NAME = "LatestProjectName";
+        private readonly string APP_THEME = "AppMetroTheme";
 
         private Thread m_thrChange = null;      // Change 메인 스레드
 
@@ -44,9 +47,9 @@ namespace MFCProjectChanger
         /// </summary>
         private void InitAppConfig()
         {
-            string strIgnoreFolders = AppConfigMgr.GetAppConfig(APP_IGNORE_FOLDERS);
-            string strIgnoreEx = AppConfigMgr.GetAppConfig(APP_IGNORE_EXTENDS);
 
+            // 폴더 필터
+            string strIgnoreFolders = AppConfigMgr.GetAppConfig(APP_IGNORE_FOLDERS);
             if (string.IsNullOrEmpty(strIgnoreFolders))
             {
                 strIgnoreFolders = "ipch";
@@ -58,15 +61,32 @@ namespace MFCProjectChanger
                 m_arrStrIgnoreFolders = strIgnoreFolders.Split(',');
             }
 
+            // 파일 확장자 필터
+            string strIgnoreEx = AppConfigMgr.GetAppConfig(APP_IGNORE_EXTENDS);
             if (string.IsNullOrEmpty(strIgnoreEx))
             {
-                strIgnoreEx = "bmp,png,ico,suo,VC.db,ipch,sqlite";
+                strIgnoreEx = "bmp,png,ico,suo,VC.db,ipch,sqlite,exe,ilk,pdb";
                 m_arrStrIgnoreEx = strIgnoreEx.Split(',');
                 AppConfigMgr.SetAppConfig(APP_IGNORE_EXTENDS, strIgnoreEx);
             }
             else
             {
                 m_arrStrIgnoreEx = strIgnoreEx.Split(',');
+            }
+
+            // 테마
+            string strTheme = AppConfigMgr.GetAppConfig(APP_THEME);
+            if (string.IsNullOrEmpty(strTheme))
+            {
+                mainThemeMgr.Theme = MetroFramework.MetroThemeStyle.Light;
+                AppConfigMgr.SetAppConfig(APP_THEME, THEME_LIGHT);
+            }
+            else
+            {
+                if (strTheme.Equals(THEME_DARK))
+                    mainThemeMgr.Theme = MetroFramework.MetroThemeStyle.Dark;
+                else
+                    mainThemeMgr.Theme = MetroFramework.MetroThemeStyle.Light;
             }
         }
 
@@ -151,7 +171,7 @@ namespace MFCProjectChanger
                             }
                         }
 
-                        eRenameResult = Util.FileRename(strFile, strCurPrjName, strChgPrjName);
+                        eRenameResult = Util.FileRename(strFile, strCurPrjName, strChgPrjName, Util.RenameType.File);
                         if (eRenameResult == Util.RenameResult.Failed)
                         {
                             SetLog(string.Format("파일명 변경 실패 - {0}", strPath));
@@ -190,7 +210,7 @@ namespace MFCProjectChanger
 
                             if (bIsChgFolder)
                             {
-                                eRenameResult = Util.FileRename(strDir, strCurPrjName, strChgPrjName);
+                                eRenameResult = Util.FileRename(strDir, strCurPrjName, strChgPrjName, Util.RenameType.Folder);
                                 if (eRenameResult == Util.RenameResult.Failed)
                                 {
                                     SetLog(string.Format("폴더명 변경 실패 - {0}", strPath));
@@ -230,6 +250,9 @@ namespace MFCProjectChanger
 
         private void ThreadChange(string strPrjPath, string strCurPrjName, string strChgPrjName)
         {
+            // 작업시작 로그
+            SetLog(string.Format("작업시작 : {0}", DateTime.Now.ToString()));
+
             // 프로그래스바의 최대값을 폴더내의 파일 및 하위폴더 개수로 설정
             int nFileCount = GetAllFileCount(strPrjPath);
             if (pgbarChange.InvokeRequired)
@@ -241,17 +264,21 @@ namespace MFCProjectChanger
             }
             else
                 pgbarChange.Maximum = nFileCount;
+            SetLog(string.Format("파일 개수 : {0}", nFileCount));
 
             // 파일 우선 변경
             DirFileNameChange(strPrjPath, strCurPrjName, strChgPrjName, true, false);
             // 디렉토리 변경
-            DirFileNameChange(strPrjPath, strCurPrjName, strChgPrjName, true, false);
+            DirFileNameChange(strPrjPath, strCurPrjName, strChgPrjName, false, true);
             // 최상위 디렉토리 변경
-            Util.RenameResult eRenameResult = Util.FileRename(strPrjPath, strCurPrjName, strChgPrjName);
+            Util.RenameResult eRenameResult = Util.FileRename(strPrjPath, strCurPrjName, strChgPrjName, Util.RenameType.Folder);
             if (eRenameResult == Util.RenameResult.Failed)
             {
                 SetLog(string.Format("폴더명 변경 실패 - {0}", strPrjPath));
             }
+
+            // 작업종료 로그
+            SetLog("작업종료 : " + DateTime.Now.ToString());
 
             MessageBox.Show("작업을 완료하였습니다.");
 
@@ -381,13 +408,39 @@ namespace MFCProjectChanger
 
 
         /// <summary>
+        /// 테마를 다크 또는 라이트로 변경하는 메소드
+        /// </summary>
+        /// <param name="bIsDark">테마가 다크인지 유무</param>
+        public void ChangeThemeDark(bool bIsDark)
+        {
+            if (bIsDark)
+            {
+                mainThemeMgr.Theme = MetroFramework.MetroThemeStyle.Dark;
+            }
+            else
+            {
+                mainThemeMgr.Theme = MetroFramework.MetroThemeStyle.Light;
+            }
+        }
+
+
+        /// <summary>
         /// 설정 버튼
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void btnSettings_Click(object sender, EventArgs e)
         {
+            using (SettingsDlg dlg = new SettingsDlg())
+            {
+                dlg.EventDarkTheme += ChangeThemeDark;
+                DialogResult dialogResult = dlg.ShowDialog();
 
+                if (dialogResult == DialogResult.OK)
+                {
+                    
+                }
+            }
         }
 
         private void FrmMain_FormClosing(object sender, FormClosingEventArgs e)
@@ -400,6 +453,13 @@ namespace MFCProjectChanger
 
             if (string.IsNullOrEmpty(tBoxPrjName.Text) == false)
                 AppConfigMgr.SetAppConfig(APP_LATEST_PROJECT_NAME, tBoxPrjName.Text);
+
+            if (mainThemeMgr.Theme == MetroFramework.MetroThemeStyle.Dark)
+                AppConfigMgr.SetAppConfig(APP_THEME, THEME_DARK);
+            else
+                AppConfigMgr.SetAppConfig(APP_THEME, THEME_LIGHT);
         }
+
+
     }
 }

@@ -16,6 +16,12 @@ namespace MFCProjectChanger
             Successed
         }
 
+        public enum RenameType
+        {
+            File = 0,
+            Folder,
+        }
+
 
         /// <summary>
         /// 파일의 인코딩을 체크하는 메소드
@@ -50,13 +56,14 @@ namespace MFCProjectChanger
         /// <param name="strCurPrjName"></param>
         /// <param name="strChgPrjName"></param>
         /// <returns></returns>
-        public static RenameResult FileRename(string strPath, string strCurPrjName, string strChgPrjName)
+        public static RenameResult FileRename(string strPath, string strCurPrjName, string strChgPrjName, RenameType eType)
         {
             RenameResult eResult = RenameResult.Failed;
 
             try
             {
-                if (File.Exists(strPath))
+                bool bExist = (eType == RenameType.File ? File.Exists(strPath) : Directory.Exists(strPath));
+                if (bExist)
                 {
                     string strNewPath = string.Empty;
                     string strFolderPath = strPath.Substring(0, strPath.LastIndexOf(@"\") + 1);
@@ -65,7 +72,10 @@ namespace MFCProjectChanger
                     {
                         strFileName = strFileName.Replace(strCurPrjName, strChgPrjName);
                         strNewPath = strFolderPath + strFileName;
-                        File.Move(strPath, strNewPath);
+                        if (eType == RenameType.File)
+                            File.Move(strPath, strNewPath);
+                        else
+                            Directory.Move(strPath, strNewPath);
                         eResult = RenameResult.Successed;
                     }
                     else

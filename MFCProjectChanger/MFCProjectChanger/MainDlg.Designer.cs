@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.lblPrjPath = new MetroFramework.Controls.MetroLabel();
             this.lblPrjName = new MetroFramework.Controls.MetroLabel();
             this.lblPrjChangeName = new MetroFramework.Controls.MetroLabel();
@@ -40,6 +41,8 @@
             this.tBoxLog = new MetroFramework.Controls.MetroTextBox();
             this.lblPrjLog = new MetroFramework.Controls.MetroLabel();
             this.btnSettings = new MetroFramework.Controls.MetroButton();
+            this.mainThemeMgr = new MetroFramework.Components.MetroStyleManager(this.components);
+            ((System.ComponentModel.ISupportInitialize)(this.mainThemeMgr)).BeginInit();
             this.SuspendLayout();
             // 
             // lblPrjPath
@@ -120,6 +123,7 @@
             this.tBoxLog.Location = new System.Drawing.Point(188, 204);
             this.tBoxLog.Multiline = true;
             this.tBoxLog.Name = "tBoxLog";
+            this.tBoxLog.ReadOnly = true;
             this.tBoxLog.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.tBoxLog.Size = new System.Drawing.Size(504, 236);
             this.tBoxLog.TabIndex = 9;
@@ -142,6 +146,10 @@
             this.btnSettings.Text = "설정";
             this.btnSettings.Click += new System.EventHandler(this.btnSettings_Click);
             // 
+            // mainThemeMgr
+            // 
+            this.mainThemeMgr.Owner = this;
+            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
@@ -163,6 +171,7 @@
             this.Resizable = false;
             this.Text = "MFC 프로젝트명 변경";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FrmMain_FormClosing);
+            ((System.ComponentModel.ISupportInitialize)(this.mainThemeMgr)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -182,6 +191,7 @@
         private MetroFramework.Controls.MetroTextBox tBoxLog;
         private MetroFramework.Controls.MetroLabel lblPrjLog;
         private MetroFramework.Controls.MetroButton btnSettings;
+        private MetroFramework.Components.MetroStyleManager mainThemeMgr;
     }
 }
 
