@@ -22,6 +22,12 @@ namespace MFCProjectChanger
             Folder,
         }
 
+        public enum StringArray
+        {
+            FolderFilter = 0,
+            ExeFilter,
+        }
+
 
         /// <summary>
         /// 파일의 인코딩을 체크하는 메소드

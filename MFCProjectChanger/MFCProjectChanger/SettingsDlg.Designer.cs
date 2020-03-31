@@ -34,9 +34,9 @@
             this.metroLabel2 = new MetroFramework.Controls.MetroLabel();
             this.toggleLastPathLog = new MetroFramework.Controls.MetroToggle();
             this.metroLabel3 = new MetroFramework.Controls.MetroLabel();
-            this.tBoxFileFilter = new MetroFramework.Controls.MetroTextBox();
-            this.metroLabel4 = new MetroFramework.Controls.MetroLabel();
             this.tBoxFolderFilter = new MetroFramework.Controls.MetroTextBox();
+            this.metroLabel4 = new MetroFramework.Controls.MetroLabel();
+            this.tBoxExeFilter = new MetroFramework.Controls.MetroTextBox();
             this.btnCancel = new MetroFramework.Controls.MetroButton();
             this.btnSet = new MetroFramework.Controls.MetroButton();
             this.settingThemeMgr = new MetroFramework.Components.MetroStyleManager(this.components);
@@ -81,6 +81,7 @@
             this.toggleLastPathLog.TabIndex = 3;
             this.toggleLastPathLog.Text = "Off";
             this.toggleLastPathLog.UseVisualStyleBackColor = true;
+            this.toggleLastPathLog.CheckedChanged += new System.EventHandler(this.toggleLastPathLog_CheckedChanged);
             // 
             // metroLabel3
             // 
@@ -89,14 +90,14 @@
             this.metroLabel3.Name = "metroLabel3";
             this.metroLabel3.Size = new System.Drawing.Size(83, 19);
             this.metroLabel3.TabIndex = 4;
-            this.metroLabel3.Text = "파일 필터링";
+            this.metroLabel3.Text = "폴더 필터링";
             // 
-            // tBoxFileFilter
+            // tBoxFolderFilter
             // 
-            this.tBoxFileFilter.Location = new System.Drawing.Point(141, 148);
-            this.tBoxFileFilter.Name = "tBoxFileFilter";
-            this.tBoxFileFilter.Size = new System.Drawing.Size(430, 23);
-            this.tBoxFileFilter.TabIndex = 5;
+            this.tBoxFolderFilter.Location = new System.Drawing.Point(141, 148);
+            this.tBoxFolderFilter.Name = "tBoxFolderFilter";
+            this.tBoxFolderFilter.Size = new System.Drawing.Size(430, 23);
+            this.tBoxFolderFilter.TabIndex = 5;
             // 
             // metroLabel4
             // 
@@ -107,12 +108,12 @@
             this.metroLabel4.TabIndex = 6;
             this.metroLabel4.Text = "확장자 필터링";
             // 
-            // tBoxFolderFilter
+            // tBoxExeFilter
             // 
-            this.tBoxFolderFilter.Location = new System.Drawing.Point(141, 185);
-            this.tBoxFolderFilter.Name = "tBoxFolderFilter";
-            this.tBoxFolderFilter.Size = new System.Drawing.Size(430, 23);
-            this.tBoxFolderFilter.TabIndex = 7;
+            this.tBoxExeFilter.Location = new System.Drawing.Point(141, 185);
+            this.tBoxExeFilter.Name = "tBoxExeFilter";
+            this.tBoxExeFilter.Size = new System.Drawing.Size(430, 23);
+            this.tBoxExeFilter.TabIndex = 7;
             // 
             // btnCancel
             // 
@@ -121,6 +122,7 @@
             this.btnCancel.Size = new System.Drawing.Size(103, 36);
             this.btnCancel.TabIndex = 8;
             this.btnCancel.Text = "취소";
+            this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
             // 
             // btnSet
             // 
@@ -129,6 +131,7 @@
             this.btnSet.Size = new System.Drawing.Size(103, 36);
             this.btnSet.TabIndex = 9;
             this.btnSet.Text = "적용";
+            this.btnSet.Click += new System.EventHandler(this.btnSet_Click);
             // 
             // settingThemeMgr
             // 
@@ -141,9 +144,9 @@
             this.ClientSize = new System.Drawing.Size(611, 290);
             this.Controls.Add(this.btnSet);
             this.Controls.Add(this.btnCancel);
-            this.Controls.Add(this.tBoxFolderFilter);
+            this.Controls.Add(this.tBoxExeFilter);
             this.Controls.Add(this.metroLabel4);
-            this.Controls.Add(this.tBoxFileFilter);
+            this.Controls.Add(this.tBoxFolderFilter);
             this.Controls.Add(this.metroLabel3);
             this.Controls.Add(this.toggleLastPathLog);
             this.Controls.Add(this.metroLabel2);
@@ -165,9 +168,9 @@
         private MetroFramework.Controls.MetroLabel metroLabel2;
         private MetroFramework.Controls.MetroToggle toggleLastPathLog;
         private MetroFramework.Controls.MetroLabel metroLabel3;
-        private MetroFramework.Controls.MetroTextBox tBoxFileFilter;
-        private MetroFramework.Controls.MetroLabel metroLabel4;
         private MetroFramework.Controls.MetroTextBox tBoxFolderFilter;
+        private MetroFramework.Controls.MetroLabel metroLabel4;
+        private MetroFramework.Controls.MetroTextBox tBoxExeFilter;
         private MetroFramework.Controls.MetroButton btnCancel;
         private MetroFramework.Controls.MetroButton btnSet;
         private MetroFramework.Components.MetroStyleManager settingThemeMgr;

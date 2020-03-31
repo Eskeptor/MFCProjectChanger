@@ -5,10 +5,9 @@
 ```
  1) MFC Project Name Changer
 ```
-## What's New? (Last updated 2020.03.30) - Build Alpha 0.1.1
+## What's New? (Last updated 2020.03.31) - Build Alpha 0.1.2
 ```
- 1) Folder Name Change Function (Complete)
- 2) Settings Dialog (~ing)
+ 1) Settings Dialog (Complete)
 ```
 ## Lasted Update List
 [View Lists](./UPDATE.md)

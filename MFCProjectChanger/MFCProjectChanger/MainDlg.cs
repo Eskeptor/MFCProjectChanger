@@ -15,6 +15,7 @@ namespace MFCProjectChanger
 {
     public partial class FrmMain : MetroForm
     {
+        
         private readonly string THEME_LIGHT = "Light";
         private readonly string THEME_DARK = "Dark";
         private readonly string APP_IGNORE_FOLDERS = "IgnoreFolders";
@@ -22,6 +23,7 @@ namespace MFCProjectChanger
         private readonly string APP_LATEST_PROJECT_PATH = "LatestProjectPath";
         private readonly string APP_LATEST_PROJECT_NAME = "LatestProjectName";
         private readonly string APP_THEME = "AppMetroTheme";
+        private readonly string APP_LATEST_EXE_SAVE = "LatestExeSave";
 
         private Thread m_thrChange = null;      // Change 메인 스레드
 
@@ -33,6 +35,8 @@ namespace MFCProjectChanger
         private string m_strCurPrjPath = string.Empty;      // 현재 프로젝트의 경로(절대 경로)
         private string m_strCurPrjName = string.Empty;      // 현재 프로젝트의 명
         private string m_strChgPrjName = string.Empty;      // 변경할 프로젝트의 명
+
+        private bool m_bIsLatestExeSave = false;            // 마지막 작업상태 저장
 
         public FrmMain()
         {
@@ -87,6 +91,21 @@ namespace MFCProjectChanger
                     mainThemeMgr.Theme = MetroFramework.MetroThemeStyle.Dark;
                 else
                     mainThemeMgr.Theme = MetroFramework.MetroThemeStyle.Light;
+            }
+
+            // 마지막 작업상태 저장 유무
+            string strLatestExeSave = AppConfigMgr.GetAppConfig(APP_LATEST_EXE_SAVE);
+            if (string.IsNullOrEmpty(strLatestExeSave))
+            {
+                m_bIsLatestExeSave = true;
+                AppConfigMgr.SetAppConfig(APP_LATEST_EXE_SAVE, "true");
+            }
+            else
+            {
+                if (strLatestExeSave.Equals("true"))
+                    m_bIsLatestExeSave = true;
+                else
+                    m_bIsLatestExeSave = false;
             }
         }
 
@@ -408,7 +427,27 @@ namespace MFCProjectChanger
 
 
         /// <summary>
-        /// 테마를 다크 또는 라이트로 변경하는 메소드
+        /// String array를 한 줄로 합치는 메소드
+        /// </summary>
+        /// <param name="strArray">String 배열</param>
+        /// <param name="chToken">중간 구분자</param>
+        /// <returns></returns>
+        private string MergeString(string[] strArray, char chToken)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            for (int i = 0; i < strArray.Length; i++)
+            {
+                stringBuilder.Append(strArray[i]);
+                if (i != strArray.Length - 1)
+                    stringBuilder.Append(chToken);
+            }
+
+            return stringBuilder.ToString();
+        }
+
+
+        /// <summary>
+        /// 테마를 다크 또는 라이트로 변경하는 메소드 (For Delegate)
         /// </summary>
         /// <param name="bIsDark">테마가 다크인지 유무</param>
         public void ChangeThemeDark(bool bIsDark)
@@ -423,6 +462,29 @@ namespace MFCProjectChanger
             }
         }
 
+        /// <summary>
+        /// 마지막 작업을 저장(프로젝트 경로, 프로젝트명)하는 플래그를 변경하는 메소드 (For Delegate)
+        /// </summary>
+        /// <param name="bIsSave">저장 유무</param>
+        public void ChangeLatestExeLog(bool bIsSave)
+        {
+            m_bIsLatestExeSave = bIsSave;
+        }
+
+
+        /// <summary>
+        /// string array 값을 바꾸는 메소드 (For Delegate)
+        /// </summary>
+        /// <param name="strLine"></param>
+        /// <param name="eArrayType"></param>
+        public void ChangeStrArray(string strLine, Util.StringArray eArrayType)
+        {
+            if (eArrayType == Util.StringArray.FolderFilter)
+                m_arrStrIgnoreFolders = strLine.Split(',');
+            else if (eArrayType == Util.StringArray.ExeFilter)
+                m_arrStrIgnoreEx = strLine.Split(',');
+        }
+
 
         /// <summary>
         /// 설정 버튼
@@ -433,12 +495,27 @@ namespace MFCProjectChanger
         {
             using (SettingsDlg dlg = new SettingsDlg())
             {
+                bool bIsDark = mainThemeMgr.Theme == MetroFramework.MetroThemeStyle.Dark ? true : false;
                 dlg.EventDarkTheme += ChangeThemeDark;
-                DialogResult dialogResult = dlg.ShowDialog();
+                dlg.EventLatestExeSave += ChangeLatestExeLog;
+                dlg.EventChangeStringArray += ChangeStrArray;
+                dlg.SetInit(bIsDark, m_bIsLatestExeSave, m_arrStrIgnoreFolders, m_arrStrIgnoreEx);
 
+                DialogResult dialogResult = dlg.ShowDialog();
                 if (dialogResult == DialogResult.OK)
                 {
-                    
+                    if (mainThemeMgr.Theme == MetroFramework.MetroThemeStyle.Dark)
+                        AppConfigMgr.SetAppConfig(APP_THEME, THEME_DARK);
+                    else
+                        AppConfigMgr.SetAppConfig(APP_THEME, THEME_LIGHT);
+
+                    if (m_bIsLatestExeSave)
+                        AppConfigMgr.SetAppConfig(APP_LATEST_EXE_SAVE, "true");
+                    else
+                        AppConfigMgr.SetAppConfig(APP_LATEST_EXE_SAVE, "false");
+
+                    AppConfigMgr.SetAppConfig(APP_IGNORE_FOLDERS, MergeString(m_arrStrIgnoreFolders, ','));
+                    AppConfigMgr.SetAppConfig(APP_IGNORE_EXTENDS, MergeString(m_arrStrIgnoreEx, ','));
                 }
             }
         }
@@ -448,18 +525,14 @@ namespace MFCProjectChanger
             if (m_thrChange != null)
                 m_thrChange.Join();
 
-            if (string.IsNullOrEmpty(tBoxPrjPath.Text) == false)
-                AppConfigMgr.SetAppConfig(APP_LATEST_PROJECT_PATH, tBoxPrjPath.Text);
+            if (m_bIsLatestExeSave)
+            {
+                if (string.IsNullOrEmpty(tBoxPrjPath.Text) == false)
+                    AppConfigMgr.SetAppConfig(APP_LATEST_PROJECT_PATH, tBoxPrjPath.Text);
 
-            if (string.IsNullOrEmpty(tBoxPrjName.Text) == false)
-                AppConfigMgr.SetAppConfig(APP_LATEST_PROJECT_NAME, tBoxPrjName.Text);
-
-            if (mainThemeMgr.Theme == MetroFramework.MetroThemeStyle.Dark)
-                AppConfigMgr.SetAppConfig(APP_THEME, THEME_DARK);
-            else
-                AppConfigMgr.SetAppConfig(APP_THEME, THEME_LIGHT);
+                if (string.IsNullOrEmpty(tBoxPrjName.Text) == false)
+                    AppConfigMgr.SetAppConfig(APP_LATEST_PROJECT_NAME, tBoxPrjName.Text);
+            }
         }
-
-
     }
 }
