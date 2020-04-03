@@ -42,6 +42,7 @@
             this.lblPrjLog = new MetroFramework.Controls.MetroLabel();
             this.btnSettings = new MetroFramework.Controls.MetroButton();
             this.mainThemeMgr = new MetroFramework.Components.MetroStyleManager(this.components);
+            this.metroLabel1 = new MetroFramework.Controls.MetroLabel();
             ((System.ComponentModel.ISupportInitialize)(this.mainThemeMgr)).BeginInit();
             this.SuspendLayout();
             // 
@@ -150,11 +151,21 @@
             // 
             this.mainThemeMgr.Owner = this;
             // 
+            // metroLabel1
+            // 
+            this.metroLabel1.AutoSize = true;
+            this.metroLabel1.Location = new System.Drawing.Point(726, 453);
+            this.metroLabel1.Name = "metroLabel1";
+            this.metroLabel1.Size = new System.Drawing.Size(115, 19);
+            this.metroLabel1.TabIndex = 12;
+            this.metroLabel1.Text = "Made by Eskeptor";
+            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(889, 462);
+            this.ClientSize = new System.Drawing.Size(878, 482);
+            this.Controls.Add(this.metroLabel1);
             this.Controls.Add(this.btnSettings);
             this.Controls.Add(this.lblPrjLog);
             this.Controls.Add(this.tBoxLog);
@@ -192,6 +203,7 @@
         private MetroFramework.Controls.MetroLabel lblPrjLog;
         private MetroFramework.Controls.MetroButton btnSettings;
         private MetroFramework.Components.MetroStyleManager mainThemeMgr;
+        private MetroFramework.Controls.MetroLabel metroLabel1;
     }
 }
 
